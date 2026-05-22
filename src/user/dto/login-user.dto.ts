@@ -1,6 +1,6 @@
 import { IsNotEmpty, MinLength } from 'class-validator';
 
-export class RegisterUserDto {
+export class LoginUserDto {
     @IsNotEmpty({ message: 'Account name is required' })
     accountname: string;
     @IsNotEmpty({ message: 'Account name is required' })
