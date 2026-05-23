@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Upload Large Files</title>
+        <style>
+            body {
+                font-family: sans-serif;
+                max-width: 600px;
+                margin: 40px auto;
+                padding: 0 20px;
+            }
+            h2 {
+                margin-bottom: 12px;
+            }
+            input[type='file'] {
+                display: block;
+                margin-bottom: 12px;
+            }
+            input[type='text'] {
+                width: 100%;
+                padding: 6px;
+                margin-bottom: 12px;
+                box-sizing: border-box;
+            }
+            button {
+                padding: 8px 20px;
+                cursor: pointer;
+            }
+            pre {
+                background: #f4f4f4;
+                padding: 12px;
+                margin-top: 16px;
+                white-space: pre-wrap;
+                word-break: break-all;
+            }
+        </style>
+    </head>
+    <body>
+        <h2>Upload Large Files — POST /user/upload/large-file</h2>
+
+        <label>Extra body field (name):</label>
+        <input type="text" id="name" placeholder="e.g. my-upload" />
+
+        <label>Select files (up to 20):</label>
+        <input type="file" id="files" multiple />
+
+        <button onclick="upload()">Upload</button>
+
+        <pre id="result">Response will appear here...</pre>
+
+        <script>
+            async function upload() {
+                const files = document.getElementById('files').files;
+                const name = document.getElementById('name').value;
+                const result = document.getElementById('result');
+
+                if (!files.length) {
+                    result.textContent = 'Please select at least one file.';
+                    return;
+                }
+
+                const formData = new FormData();
+                for (const file of files) {
+                    formData.append('files', file);
+                }
+                if (name) {
+                    formData.append('name', name);
+                }
+
+                result.textContent = 'Uploading...';
+                try {
+                    const res = await fetch(
+                        'http://localhost:3000/user/upload/large-file',
+                        {
+                            method: 'POST',
+                            body: formData,
+                        },
+                    );
+                    const text = await res.text();
+                    result.textContent = `Status: ${res.status}\n\n${text}`;
+                } catch (err) {
+                    result.textContent = `Error: ${err.message}`;
+                }
+            }
+        </script>
+    </body>
+</html>
