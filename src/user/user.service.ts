@@ -7,13 +7,16 @@ import { LoginUserDto } from './dto/login-user.dto';
 
 @Injectable()
 export class UserService {
-
     @Inject(DbService)
     dbService: DbService;
 
     async login(loginUserDto: LoginUserDto) {
         const users: User[] = (await this.dbService.read<User[]>()) || [];
-        const user = users.find(user => user.accountname === loginUserDto.accountname && user.password === loginUserDto.password);
+        const user = users.find(
+            (user) =>
+                user.accountname === loginUserDto.accountname &&
+                user.password === loginUserDto.password,
+        );
         if (!user) {
             throw new BadRequestException('Invalid account name or password');
         }
@@ -24,7 +27,9 @@ export class UserService {
         const users: User[] = (await this.dbService.read<User[]>()) || [];
 
         //Check if user already exists
-        const existingUser = users.find(user => user.accountname === registerUserDto.accountname);
+        const existingUser = users.find(
+            (user) => user.accountname === registerUserDto.accountname,
+        );
         if (existingUser) {
             throw new BadRequestException('Account name already exists');
         }

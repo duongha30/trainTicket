@@ -15,7 +15,7 @@ import { LoginUserDto } from './dto/login-user.dto';
 
 @Controller('user')
 export class UserController {
-    constructor(private readonly userService: UserService) { }
+    constructor(private readonly userService: UserService) {}
 
     @Post('login')
     login(@Body() loginUserDto: LoginUserDto) {
