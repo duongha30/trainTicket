@@ -7,7 +7,8 @@ export interface DbModuleOptions {
 
 @Module({})
 export class DbModule {
-    static register(options: DbModuleOptions): DynamicModule { // dynamic module to allow passing options to the module
+    static register(options: DbModuleOptions): DynamicModule {
+        // dynamic module to allow passing options to the module
         return {
             module: DbModule, // mandatory to declare in dynamic modules
             providers: [
