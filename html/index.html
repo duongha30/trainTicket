@@ -82,12 +82,13 @@
             }
 
             result.textContent = 'Uploading...';
+            const randomSuffix = Math.random().toString(36).substring(2, 8);
+            const uniqueName = `${randomSuffix}-${file.name}`;
             try {
-                const randomSuffix = Math.random().toString(36).substring(2, 8);
                 for (let index = 0; index < chunks.length; index++) {
                     const formData = new FormData();
                     // text fields must come before the file so multer parses them into req.body
-                    formData.set('name', `${file.name}-${randomSuffix}}`);
+                    formData.set('name', uniqueName);
                     formData.append('chunkIndex', String(index));
                     formData.append('totalChunks', String(chunks.length));
                     formData.append('files', chunks[index], file.name);
@@ -106,6 +107,11 @@
             } catch (err) {
                 result.textContent = `Error: ${err.message}`;
             }
+
+            // Call merge after uploading
+            const rs = await fetch(`http://localhost:3000/user/merge/file?file=${uniqueName}`, {
+                method: 'GET',
+            });
         }
     </script>
 </body>

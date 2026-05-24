@@ -10,7 +10,10 @@ import {
     UseInterceptors,
     BadRequestException,
     UploadedFiles,
+    Query,
+    Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import path from 'path';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -81,7 +84,6 @@ export class UserController {
     ) {
         const file = files[0];
         const filename = body.name;
-        console.log('filename', filename);
         const nameDir = 'upload-files/chunks-' + filename;
 
         if (!fs.existsSync(nameDir)) {
@@ -90,6 +92,33 @@ export class UserController {
 
         fs.cpSync(file.path, nameDir + '/' + filename + '-' + body.chunkIndex);
         fs.rmSync(file.path);
+    }
+
+    @Get('merge/file')
+    mergeFile(@Query('file') filename: string, @Res() res: Response) {
+        const nameDir = 'upload-files/chunks-' + filename;
+        const files = fs.readdirSync(nameDir); // Reads the list of chunk files inside the chunks folder
+        let startPos = 0, countFile = 0;
+        files.map((file) => {
+            const filePath = nameDir + '/' + file;
+            // Opens the chunk as a readable stream
+            const streamFile = fs.createReadStream(filePath);
+            // Pipes (writes) it into the merged output file at the correct byte offset (start: startPos)
+            streamFile.pipe(fs.createWriteStream('upload-files/merged-' + filename, {
+                start: startPos,
+            })).on('finish', () => {
+                countFile++;
+                if (files.length === countFile) { // Only remove after all chunks have been finished writing to the merged file
+                    fs.rm(nameDir, { recursive: true }, () => { });
+                }
+            });
+            // Advances startPos by the chunk's size so the next chunk is written immediately after
+            startPos += fs.statSync(filePath).size;
+        });
+
+        return res.json({
+            link: 'http://localhost:3000/' + 'upload-files/merged-' + filename,
+        });
     }
 
     @Get()
