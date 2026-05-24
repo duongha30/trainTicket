@@ -26,7 +26,7 @@ import * as fs from 'fs';
 
 @Controller('user')
 export class UserController {
-    constructor(private readonly userService: UserService) { }
+    constructor(private readonly userService: UserService) {}
 
     @Post('login')
     login(@Body() loginUserDto: LoginUserDto) {
@@ -41,7 +41,8 @@ export class UserController {
     }
 
     @Post('upload/avatar')
-    @UseInterceptors(   /* validate type of file (e.g. png, jpg) and size of file (e.g. max 2MB) */
+    @UseInterceptors(
+        /* validate type of file (e.g. png, jpg) and size of file (e.g. max 2MB) */
         FileInterceptor('file', {
             dest: 'upload-files',
             storage: storage,
@@ -73,7 +74,8 @@ export class UserController {
     }
 
     @Post('upload/large-file')
-    @UseInterceptors(   /* validate type of file (e.g. png, jpg) and size of file (e.g. max 2MB) */
+    @UseInterceptors(
+        /* validate type of file (e.g. png, jpg) and size of file (e.g. max 2MB) */
         FilesInterceptor('files', 20, {
             dest: 'upload-files',
         }),
@@ -98,20 +100,26 @@ export class UserController {
     mergeFile(@Query('file') filename: string, @Res() res: Response) {
         const nameDir = 'upload-files/chunks-' + filename;
         const files = fs.readdirSync(nameDir); // Reads the list of chunk files inside the chunks folder
-        let startPos = 0, countFile = 0;
+        let startPos = 0,
+            countFile = 0;
         files.map((file) => {
             const filePath = nameDir + '/' + file;
             // Opens the chunk as a readable stream
             const streamFile = fs.createReadStream(filePath);
             // Pipes (writes) it into the merged output file at the correct byte offset (start: startPos)
-            streamFile.pipe(fs.createWriteStream('upload-files/merged-' + filename, {
-                start: startPos,
-            })).on('finish', () => {
-                countFile++;
-                if (files.length === countFile) { // Only remove after all chunks have been finished writing to the merged file
-                    fs.rm(nameDir, { recursive: true }, () => { });
-                }
-            });
+            streamFile
+                .pipe(
+                    fs.createWriteStream('upload-files/merged-' + filename, {
+                        start: startPos,
+                    }),
+                )
+                .on('finish', () => {
+                    countFile++;
+                    if (files.length === countFile) {
+                        // Only remove after all chunks have been finished writing to the merged file
+                        fs.rm(nameDir, { recursive: true }, () => {});
+                    }
+                });
             // Advances startPos by the chunk's size so the next chunk is written immediately after
             startPos += fs.statSync(filePath).size;
         });
