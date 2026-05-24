@@ -9,6 +9,7 @@ import {
     UploadedFile,
     UseInterceptors,
     BadRequestException,
+    UploadedFiles,
 } from '@nestjs/common';
 import path from 'path';
 import { UserService } from './user.service';
@@ -16,8 +17,9 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { storage } from 'src/oss';
+import * as fs from 'fs';
 
 @Controller('user')
 export class UserController {
@@ -65,6 +67,29 @@ export class UserController {
     uploadAvatar(@UploadedFile() file: Express.Multer.File) {
         console.log('upload file: ', file.path);
         return file.path;
+    }
+
+    @Post('upload/large-file')
+    @UseInterceptors(   /* validate type of file (e.g. png, jpg) and size of file (e.g. max 2MB) */
+        FilesInterceptor('files', 20, {
+            dest: 'upload-files',
+        }),
+    )
+    uploadLargeFile(
+        @UploadedFiles() files: Array<Express.Multer.File>,
+        @Body() body: { name: string; chunkIndex: string; totalChunks: string },
+    ) {
+        const file = files[0];
+        const filename = body.name;
+        console.log('filename', filename);
+        const nameDir = 'upload-files/chunks-' + filename;
+
+        if (!fs.existsSync(nameDir)) {
+            fs.mkdirSync(nameDir);
+        }
+
+        fs.cpSync(file.path, nameDir + '/' + filename + '-' + body.chunkIndex);
+        fs.rmSync(file.path);
     }
 
     @Get()

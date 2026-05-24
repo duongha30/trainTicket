@@ -8,7 +8,14 @@ async function bootstrap() {
     // const app = await NestFactory.create(AppModule);
     const app = await NestFactory.create<NestExpressApplication>(AppModule);
     app.useGlobalPipes(new ValidationPipe());
-    app.useStaticAssets(join(__dirname, '../upload-files'), { // support from Express static middleware
+
+    //cors
+    app.enableCors({
+        origin: '*',
+    });
+
+    // support from Express static middleware
+    app.useStaticAssets(join(__dirname, '../upload-files'), {
         prefix: '/upload-files',
     });
     await app.listen(process.env.PORT ?? 3000);
