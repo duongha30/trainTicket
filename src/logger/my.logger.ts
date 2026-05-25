@@ -26,6 +26,16 @@ export class MyLogger implements LoggerService {
                         }),
                     ),
                 }),
+                new transports.File({
+                    format: format.combine(
+                        format.timestamp(),
+                        format.json(),
+                    ),
+                    dirname: 'logs',
+                    filename: `${dayjs(Date.now()).format('YYYY-MM-DD')}.log`,
+                    maxsize: 10 * 1024 * 1024, // 10MB
+                    maxFiles: 7, // Keep logs for 7 days
+                })
             ],
         });
     }
