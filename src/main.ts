@@ -3,10 +3,13 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
+import { MyLogger } from './logger/my.logger';
 
 async function bootstrap() {
-    // const app = await NestFactory.create(AppModule);
-    const app = await NestFactory.create<NestExpressApplication>(AppModule);
+    const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+        bufferLogs: true, // Enable buffering of logs until the logger is set up
+    });
+    app.useLogger(new MyLogger());
     app.useGlobalPipes(new ValidationPipe());
 
     //cors
