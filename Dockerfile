@@ -1,17 +1,25 @@
-FROM node:latest
+FROM node:latest as build-stage
 
 WORKDIR /app
 
 COPY package*.json ./
 
-RUN yarn
+RUN npm install
 
 COPY . .
 
-RUN yarn build
+RUN npm run build
+
+# Production stage
+FROM node:latest as prod-stage
+
+COPY --from=build-stage /app/dist /app
+COPY --from=build-stage /app/package.json /app/package.json
+
+WORKDIR /app
+
+RUN npm install --production
 
 EXPOSE 3000
 
-VOLUME /app
-
-CMD ["node", "dist/main.js"]
+CMD ["node", "main.js"]
